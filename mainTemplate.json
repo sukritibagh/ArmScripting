@@ -1,0 +1,88 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualMachines_Automation_POC_Tools_VM_name": {
+            "defaultValue": "Automation-POC-Tools-VMNew",
+            "type": "String"
+        },
+        "disks_Automation_POC_Tools_VM_OsDisk_1_7240d5bf75484d6fb4b949bb0b018eb0_externalid": {
+            "defaultValue": "/subscriptions/9d313565-94c5-43c6-a91e-728396d51227/resourceGroups/SUKRITIAUTOMATIONPOCNew/providers/Microsoft.Compute/disks/Automation-POC-Tools-VM_OsDisk_1_7240d5bf75484d6fb4b949bb0b018eb0",
+            "type": "String"
+        },
+        "networkInterfaces_automation_poc_tools290_externalid": {
+            "defaultValue": "/subscriptions/9d313565-94c5-43c6-a91e-728396d51227/resourceGroups/SukritiAutomationPOCNew/providers/Microsoft.Network/networkInterfaces/automation-poc-tools290",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-03-01",
+            "name": "[parameters('virtualMachines_Automation_POC_Tools_VM_name')]",
+            "location": "eastus2",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_D2_v3"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "RedHat",
+                        "offer": "RHEL",
+                        "sku": "7-RAW",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "[concat(parameters('virtualMachines_Automation_POC_Tools_VM_name'), '_OsDisk_1_7240d5bf75484d6fb4b949bb0b018eb0')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "id": "[parameters('disks_Automation_POC_Tools_VM_OsDisk_1_7240d5bf75484d6fb4b949bb0b018eb0_externalid')]"
+                        }
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_Automation_POC_Tools_VM_name')]",
+                    "adminUsername": "SukritiAdmin",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": false,
+                        "provisionVMAgent": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[parameters('networkInterfaces_automation_poc_tools290_externalid')]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "https://sukritiautomationpocd200.blob.core.windows.net/"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2019-03-01",
+            "name": "[concat(parameters('virtualMachines_Automation_POC_Tools_VM_name'), '/AzureNetworkWatcherExtension')]",
+            "location": "eastus2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_Automation_POC_Tools_VM_name'))]"
+            ],
+            "properties": {
+                "autoUpgradeMinorVersion": true,
+                "publisher": "Microsoft.Azure.NetworkWatcher",
+                "type": "NetworkWatcherAgentLinux",
+                "typeHandlerVersion": "1.4"
+            }
+        }
+    ]
+}
